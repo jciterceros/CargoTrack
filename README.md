@@ -63,7 +63,6 @@ Banco de Dados
         ▼
 Dashboard em Tempo Real
 ```
-
 ---
 
 ## Cenário Simulado
@@ -80,38 +79,38 @@ A plataforma representa operações logísticas de grande porte com:
 
 ## Stack Tecnológica
 
+Documentação detalhada: [docs/](docs/README.md)
+
 ### Backend
 
-- Java
-- Spring Boot
-- Spring Cloud
-- Spring Security
-- WebSocket
+- Java 21 · Spring Boot 3
+- Spring Security · WebSocket
+- Simulador de frota: **Node.js**
 
 ### Mensageria
 
-- Apache Kafka
-- RabbitMQ
+- **Apache Kafka** — `telemetry-events` + `domain-events` (MVP)
+- RabbitMQ — pós-MVP (notificações externas)
 
 ### Banco de Dados
 
-- PostgreSQL
-- TimescaleDB
-- Redis
+- PostgreSQL (event log)
+- TimescaleDB (histórico de rotas)
+- Redis (estado atual da frota)
 
 ### Observabilidade
 
-- Prometheus
-- Grafana
-- Loki
-- OpenTelemetry
+- Prometheus · Grafana (MVP)
+- Loki · OpenTelemetry — pós-MVP
 
 ### Infraestrutura
 
-- Docker
-- Kubernetes
-- Nginx
-- GitHub Actions
+| Fase | Tecnologias |
+|------|-------------|
+| **MVP (desenvolvimento local)** | Docker · Docker Compose |
+| **Produção (planejado)** | Kubernetes · Nginx · GitHub Actions |
+
+No MVP, Kafka, PostgreSQL, Redis e os serviços Java rodam via **Docker Compose**. **Kubernetes** entra na evolução para deploy em produção (HPA, Ingress, ambientes staging/prod). Detalhes: [system-design.md](docs/system-design.md) · [roadmap.md](docs/roadmap.md)
 
 ---
 
@@ -128,7 +127,7 @@ Uma transportadora deseja monitorar sua frota em tempo real. Cada caminhão envi
 
 ## Visão Geral
 
-**CargoTrack** demonstra a construção de uma plataforma moderna de telemetria e rastreamento logístico baseada em eventos, preparada para lidar com grandes volumes de dados e requisitos de processamento em tempo real.
+**CargoTrack** demonstra a construção de uma plataforma moderna de telemetria e rastreamento logístico baseada em eventos (**CQRS leve + Kafka**), preparada para lidar com grandes volumes de dados e requisitos de processamento em tempo real.
 
 ---
 
