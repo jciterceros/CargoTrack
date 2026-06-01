@@ -1,0 +1,116 @@
+# --- Build (Java) ---
+target/
+out/
+build/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# Gradle
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# --- Spring Boot ---
+.springBeans
+spring-boot-devtools.properties
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.factorypath
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# --- Logs & runtime ---
+logs/
+*.log
+*.log.*
+*.pid
+*.seed
+*.pid.lock
+
+# --- Docs/old files ---
+docs/old/
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+secrets/
+application-local.yml
+application-local.yaml
+application-local.properties
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Docker ---
+docker-compose.override.yml
+.docker/
+
+# --- Kubernetes (local/generated) ---
+kubeconfig
+*.kubeconfig
+
+# --- Observability / local data ---
+prometheus/data/
+grafana/data/
+loki/data/
+
+# --- Test & coverage ---
+coverage/
+*.exec
+.jacoco/
+test-results/
+surefire-reports/
+failsafe-reports/
+
+# --- Node (se houver dashboard frontend) ---
+node_modules/
+dist/
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# --- Misc ---
+*.tmp
+*.bak
+*.orig
+.cache/
+tmp/
+temp/
