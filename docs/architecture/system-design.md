@@ -1,3 +1,10 @@
+---
+title: System Design
+status: stable
+last_updated: 2026-06-08
+owners: [architecture]
+---
+
 # System Design — CargoTrack
 
 > Plataforma de rastreamento logístico e telemetria de frotas em tempo real.
@@ -20,7 +27,7 @@ Demonstrar arquitetura orientada a eventos com **CQRS leve**, Kafka em dois tóp
 
 ### Referências
 
-- [README](../README.md) — visão de produto
+- [README do projeto](../../README.md) — visão de produto
 - [stack.md](./stack.md) — decisão tecnológica adotada
 
 ---
@@ -71,46 +78,6 @@ Demonstrar arquitetura orientada a eventos com **CQRS leve**, Kafka em dois tóp
 | Read models | Projeção **síncrona** no fleet | Projeção **assíncrona** via consumer |
 | `domain-events` | Notifica outros serviços | Obrigatório para materializar read models |
 
-### Diagrama de contexto
-
-```
-┌───────────────────────────────────────────────────────────────────────────────┐
-│                         CargoTrack Platform                                   │
-│                                                                               │
-│  ┌──────────────┐   POST JSON / gRPC ┌─────────────────────────────┐          │
-│  │  Simulador   │ ──────────────────►│  Ingestion Service (Java)   │          │
-│  │  (Node.js)   │                    └──────────────┬──────────────┘          │
-│  └──────────────┘                                   │                         │
-│                                                     ▼                         │
-│                                          telemetry-events                     │
-│                                                     │                         │
-│                                                     ▼                         │
-│                                          ┌─────────────────┐                  │
-│                                          │  Fleet Service  │                  │
-│                                          │  (write side)   │                  │
-│                                          └────────┬────────┘                  │
-│                                                   ▼                           │
-│              ┌──────────────────┬────────────┬─────────────────┐              │
-│              ▼                  ▼            ▼                 ▼              │
-│  ┌────────────────────────┐┌─────────┐┌─────────────┐  ┌───────────────┐      │
-│  │ Event log (PostgreSQL) ││ Redis   ││ TimescaleDB │  │ domain-events │      │
-│  └───────────┬────────────┘└────┬────┘└─────┬───────┘  └───────┬───────┘      │
-│              │                  │           │           ┌──────┴────┐         │
-│              │                  │           │           ▼           ▼         │
-│              │                  │           │    ┌─────────────┐┌───────────┐ │
-│              │                  │           │    │Alert Service││ Analytics │ │
-│              │                  │           │    │  (Java)     ││ (opcional)│ │
-│              │                  │           │    └────┬────────┘└─────┬─────┘ │
-│              └──────────────────┴───────────┴─────────┼───────────────┘       │
-│                                                       ▼                       │
-│           ┌─────────────────────────────────────────────────────────────┐     │
-│           │        Query API (Read Side) — REST + WebSocket             │     │
-│           └───────────────────────────────────────────┬─────────────────┘     │
-└───────────────────────────────────────────────────────┼───────────────────────┘
-                                                        ▼
-                                        Operadores / Dashboard (WebSocket)
-```
-
 ### Fluxo principal
 
 ```
@@ -148,22 +115,7 @@ Query API (read side)
 | Transporte | **REST** (POST JSON) — MVP |
 | Config | `VEHICLE_COUNT`, `INTERVAL_MS`, `INGESTION_URL` |
 
-```http
-POST /api/v1/telemetry HTTP/1.1
-Content-Type: application/json
-
-{
-  "eventId": "uuid",
-  "vehicleId": "TRK-001",
-  "timestampMs": 1717080123123,
-  "payload": {
-    "type": "location",
-    "lat": -23.55052,
-    "lng": -46.633308,
-    "speedKmh": 82.5
-  }
-}
-```
+Ver contrato: [rest-ingestion.md](../reference/api/rest-ingestion.md)
 
 ---
 
@@ -236,13 +188,7 @@ Consome fatos de negócio já validados — não processa telemetria bruta.
 | APIs | REST + WebSocket/STOMP |
 | Auth | Spring Security + JWT |
 
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/v1/fleet` | Frota com estado atual (Redis) |
-| GET | `/api/v1/vehicles/{id}` | Detalhe do veículo |
-| GET | `/api/v1/vehicles/{id}/route` | Histórico (TimescaleDB) |
-| GET | `/api/v1/alerts` | Alertas ativos |
-| WS | `/ws/fleet` | Push tempo real |
+Ver endpoints: [rest-query.md](../reference/api/rest-query.md)
 
 ---
 
@@ -263,65 +209,22 @@ Serviço **opcional** para rebuild assíncrono de read models a partir de `domai
 
 **Formato:** JSON no MVP.
 
+Detalhes: [messaging/](../reference/messaging/)
+
 ### Outbox pattern
 
-Garante consistência entre event log e Kafka:
-
-```sql
-CREATE TABLE outbox (
-  id         UUID PRIMARY KEY,
-  event_id   UUID NOT NULL UNIQUE,
-  payload    JSONB NOT NULL,
-  published  BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-Worker no `fleet-service` (ou scheduler) lê `outbox WHERE published = false` → publica em `domain-events` → marca `published = true`.
+Ver: [postgres-event-log.md](../reference/data-models/postgres-event-log.md)
 
 ---
 
 ## 6. Modelo de Dados
 
-Detalhes: [event-model.md](./event-model.md)
-
-### Event log (PostgreSQL)
-
-```sql
-CREATE TABLE domain_events (
-  id             BIGSERIAL PRIMARY KEY,
-  event_id       UUID NOT NULL UNIQUE,
-  aggregate_id   TEXT NOT NULL,
-  aggregate_type VARCHAR(64) NOT NULL DEFAULT 'vehicle',
-  event_type     VARCHAR(128) NOT NULL,
-  event_version  INT NOT NULL DEFAULT 1,
-  payload        JSONB NOT NULL,
-  occurred_at    TIMESTAMPTZ NOT NULL,
-  recorded_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-> Event log para **auditoria**. Estado atual vem do Redis, não do replay.
-
-### Redis — read model (estado atual)
-
-```
-Key: vehicle:{vehicleId}:state
-Fields: lat, lng, speed, fuel, temp, engine, doors, alerts, updatedAt
-```
-
-### TimescaleDB — read model (histórico)
-
-```sql
-CREATE TABLE vehicle_locations (
-  time       TIMESTAMPTZ NOT NULL,
-  vehicle_id TEXT NOT NULL,
-  lat        DOUBLE PRECISION,
-  lng        DOUBLE PRECISION,
-  speed_kmh  REAL
-);
-SELECT create_hypertable('vehicle_locations', 'time');
-```
+| Store | Documento |
+|-------|-----------|
+| PostgreSQL (event log + outbox) | [postgres-event-log.md](../reference/data-models/postgres-event-log.md) |
+| Redis (estado atual) | [redis-state.md](../reference/data-models/redis-state.md) |
+| TimescaleDB (histórico) | [timescale-locations.md](../reference/data-models/timescale-locations.md) |
+| Catálogo de eventos | [event-catalog.md](../domain/event-catalog.md) |
 
 ### Distribuição CQRS leve
 
@@ -434,8 +337,8 @@ Kubernetes, RabbitMQ, gRPC — pós-MVP.
 
 ## 13. Próximos Passos
 
-1. [roadmap.md](./roadmap.md)
-2. [folder-structure.md](./folder-structure.md)
+1. [roadmap.md](../product/roadmap.md)
+2. [repository-layout.md](../development/repository-layout.md)
 3. Fase 1 — Docker Compose + tópicos Kafka
 
 ---

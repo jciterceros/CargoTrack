@@ -1,3 +1,10 @@
+---
+title: Stack Tecnológica
+status: stable
+last_updated: 2026-06-08
+owners: [architecture]
+---
+
 # Stack Tecnológica — CargoTrack
 
 **Backend:** Java/Spring Boot · **Simulador:** Node.js · **Padrão:** CQRS leve + `domain-events`
@@ -29,10 +36,7 @@
 
 Ambos com **partition key = `vehicleId`**.
 
-### Por que dois tópicos
-
-- **telemetry-events** — pipeline de entrada, alto volume, dados brutos
-- **domain-events** — fatos validados, consumidores desacoplados (alertas, analytics)
+Detalhes: [decisions/002-kafka-dois-topicos.md](./decisions/002-kafka-dois-topicos.md)
 
 ---
 
@@ -62,6 +66,8 @@ Ambos com **partition key = `vehicleId`**.
 
 **Não é Event Sourcing completo:** Redis é atualizado pelo fleet de forma síncrona; `domain-events` desacopla alertas e integrações futuras.
 
+Ver: [decisions/001-cqrs-leve-domain-events.md](./decisions/001-cqrs-leve-domain-events.md)
+
 ---
 
 ## Simulador (Node.js)
@@ -70,20 +76,6 @@ Ambos com **partition key = `vehicleId`**.
 |------|----------|--------|
 | **REST** | `POST /api/v1/telemetry` | MVP |
 | gRPC | `SendTelemetry` | Pós-MVP |
-
-```json
-{
-  "eventId": "550e8400-e29b-41d4-a716-446655440000",
-  "vehicleId": "TRK-001",
-  "timestampMs": 1717080123123,
-  "payload": {
-    "type": "location",
-    "lat": -23.55052,
-    "lng": -46.633308,
-    "speedKmh": 82.5
-  }
-}
-```
 
 ---
 
@@ -96,6 +88,8 @@ Ambos com **partition key = `vehicleId`**.
 | Kafka | `spring-kafka` |
 | Outbox | Tabela PG + `@Scheduled` worker |
 | Métricas | Micrometer + Prometheus |
+
+Ver: [decisions/003-java-backend-node-simulator.md](./decisions/003-java-backend-node-simulator.md)
 
 ### Serviços MVP
 

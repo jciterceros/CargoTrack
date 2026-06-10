@@ -1,16 +1,44 @@
-# Estrutura de Pastas — CargoTrack
+---
+title: Layout do Repositório
+status: stable
+last_updated: 2026-06-08
+owners: [engineering]
+---
+
+# Layout do Repositório — CargoTrack
 
 Organização do monorepo — **CQRS leve + domain-events** · Java/Spring Boot + Node.js.
 
 ```
 CargoTrack/
+├── README.md
+├── CONTRIBUTING.md
+├── LICENSE
+│
 ├── docs/
 │   ├── README.md
-│   ├── system-design.md
-│   ├── stack.md
-│   ├── event-model.md
-│   ├── folder-structure.md
-│   └── roadmap.md
+│   ├── product/
+│   │   ├── overview.md
+│   │   ├── vision-and-story.md
+│   │   └── roadmap.md
+│   ├── architecture/
+│   │   ├── system-design.md
+│   │   ├── stack.md
+│   │   └── decisions/
+│   ├── domain/
+│   │   ├── glossary.md
+│   │   └── event-catalog.md
+│   ├── reference/
+│   │   ├── api/
+│   │   ├── messaging/
+│   │   └── data-models/
+│   ├── development/
+│   │   ├── getting-started.md
+│   │   ├── repository-layout.md
+│   │   └── implementation-order.md
+│   └── assets/
+│       └── diagrams/
+│           └── architecture-overview.svg
 │
 ├── simulator/                     # Node.js
 │   └── src/
@@ -89,12 +117,3 @@ ingestion-service ──► telemetry-events
                             ▼
                       query-api (READ) ◄── Redis + TimescaleDB
 ```
-
-## Ordem de implementação
-
-1. Infra + tópicos Kafka
-2. `ingestion-service`
-3. `simulator`
-4. `fleet-service` (writemodel + projection síncrona)
-5. Outbox + `domain-events` (no fleet-service)
-6. `alert-service` + `query-api`

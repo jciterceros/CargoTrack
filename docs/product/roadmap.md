@@ -1,9 +1,16 @@
+---
+title: Roadmap de Implementação
+status: stable
+last_updated: 2026-06-08
+owners: [product, engineering]
+---
+
 # Roadmap de Implementação — CargoTrack
 
 **Padrão:** CQRS leve + Kafka (`telemetry-events` + `domain-events`)  
-Stack: **Java/Spring Boot** + **Node.js** (simulador)
+**Stack:** Java/Spring Boot + Node.js (simulador)
 
-Detalhes: [stack.md](./stack.md) · [system-design.md](./system-design.md)
+Detalhes: [stack.md](../architecture/stack.md) · [system-design.md](../architecture/system-design.md)
 
 ---
 
@@ -44,7 +51,7 @@ Fase 1 ──► Fase 2 ──► Fase 3 ──► Fase 4 ──► Fase 4b ─�
 ### Entregas
 
 - [ ] Projeto `services/ingestion-service/` (Spring Boot 3, Java 21)
-- [ ] `POST /api/v1/telemetry` — JSON conforme [event-model.md](./event-model.md)
+- [ ] `POST /api/v1/telemetry` — JSON conforme [event-catalog.md](../domain/event-catalog.md)
 - [ ] `TelemetryProducer` — key = `vehicleId`, tópico `telemetry-events`
 - [ ] Actuator health + métrica `ingestion_events_total`
 
@@ -163,6 +170,8 @@ Fase 1 ──► Fase 2 ──► Fase 3 ──► Fase 4 ──► Fase 4b ─�
 4. Fase 4 — fleet write side (PG + Redis + TimescaleDB)
 5. Fase 4b — outbox + `domain-events`
 6. Fase 5 — alert-service + query-api
+
+Ver também: [implementation-order.md](../development/implementation-order.md)
 
 ---
 
